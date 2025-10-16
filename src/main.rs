@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 
 use clap::{Parser, Subcommand};
 
@@ -19,15 +19,11 @@ enum Commands {
 }
 
 fn initial_prompt(what: &What, name: &String) {
-    let cwd = env::current_dir().unwrap();
-
     match what {
         What::Site => {
             println!(
                 // Fix to display the actual path, not cwd
-                "Congratulations! Your new site \"{}\", was created in: {:?}.",
-                name,
-                cwd.display()
+                "Congratulations! Your new site \"{}\", was created!", name
             );
 
             println!("\nJust a few more steps...\n");
@@ -52,6 +48,18 @@ enum What {
     Post,
 }
 
+fn create_post(name: &String) -> Result<(), Box<dyn std::error::Error>> {
+    let filename = name;
+    let path = env::current_exe().expect("Couldn't get current path.");
+    println!("Trying to create post with name {}.md", name);
+    
+    let path = std::format!("{:?}{}.md", path, filename);
+    
+    // fs::File::create(path).expect("Could not create file.");
+    println!("At path: {:?}", path);
+    Ok(())
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -66,6 +74,7 @@ fn main() {
             } else if what == "post" {
                 // prompt for post
                 initial_prompt(&What::Post, &name);
+                let _ = create_post(&name);
             }
         }
     };
