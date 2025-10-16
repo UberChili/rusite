@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env};
 
 use clap::{Parser, Subcommand};
 
@@ -49,11 +49,15 @@ enum What {
 }
 
 fn create_post(name: &String) -> Result<(), Box<dyn std::error::Error>> {
-    let filename = name;
-    let path = env::current_exe().expect("Couldn't get current path.");
+    // let filename = name.push_str(".md");
+    let filename = format!("{}.md", name);
+    let mut path = env::current_exe().expect("Couldn't get current path.");
     println!("Trying to create post with name {}.md", name);
     
-    let path = std::format!("{:?}{}.md", path, filename);
+    // let path = std::format!("{}{}.md", path, filename);
+    path.push("content");
+    path.push("posts");
+    path.push(filename);
     
     // fs::File::create(path).expect("Could not create file.");
     println!("At path: {:?}", path);
