@@ -21,22 +21,27 @@ enum Commands {
 fn initial_prompt(what: &What, name: &String) {
     match what {
         What::Site => {
-            println!(
-                // Fix to display the actual path, not cwd
-                "Congratulations! Your new site \"{}\", was created!",
-                name
-            );
+            match create_site(&name) {
+                Ok(_) => {
+                    println!(
+                        // Fix to display the actual path, not cwd
+                        "Congratulations! Your new site \"{}\", was created!",
+                        name
+                    );
 
-            println!("\nJust a few more steps...\n");
+                    println!("\nJust a few more steps...\n");
 
-            // Placeholder still
-            println!("1. Change the current directory to {}", "directory.");
-            println!(
-                "2. Create new content with the command \"rusite new content <SECTIONNAME>/<FILENAME>.<FORMAT>\"."
-            );
-            println!(
-                "3. Start the embedded web server with the command \"rusite server --buildDrafts\"."
-            );
+                    // Placeholder still
+                    println!("1. Change the current directory to {}", "directory.");
+                    println!(
+                        "2. Create new content with the command \"rusite new content <SECTIONNAME>/<FILENAME>.<FORMAT>\"."
+                    );
+                    println!(
+                        "3. Start the embedded web server with the command \"rusite server --buildDrafts\"."
+                    );
+                }
+                Err(err) => eprintln!("{err}"),
+            };
         }
         What::Post => {
             match create_post(&name) {
@@ -50,6 +55,27 @@ fn initial_prompt(what: &What, name: &String) {
 enum What {
     Site,
     Post,
+}
+
+fn create_site(name: &String) -> Result<(), Box<dyn std::error::Error>> {
+    let mut path = env::current_dir()?;
+    path.push(&name);
+    if path.exists() {
+        let err = format!("Site {} already exists!", &name);
+        return Err(err.into());
+    }
+    fs::create_dir_all(&path)?;
+    env::set_current_dir(&path)?;
+    fs::create_dir("content")?;
+    fs::create_dir("static")?;
+    fs::create_dir("layouts")?;
+    fs::create_dir("themes")?;
+    fs::create_dir("archetypes")?;
+    fs::create_dir("assets")?;
+    fs::create_dir("data")?;
+    fs::File::create("config.toml")?;
+
+    Ok(())
 }
 
 fn create_post(name: &String) -> Result<(), Box<dyn std::error::Error>> {
