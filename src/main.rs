@@ -1,4 +1,4 @@
-use std::{env};
+use std::{env, fs};
 
 use clap::{Parser, Subcommand};
 
@@ -23,7 +23,8 @@ fn initial_prompt(what: &What, name: &String) {
         What::Site => {
             println!(
                 // Fix to display the actual path, not cwd
-                "Congratulations! Your new site \"{}\", was created!", name
+                "Congratulations! Your new site \"{}\", was created!",
+                name
             );
 
             println!("\nJust a few more steps...\n");
@@ -38,7 +39,10 @@ fn initial_prompt(what: &What, name: &String) {
             );
         }
         What::Post => {
-            println!("Your new post \"{}\" was created!", &name);
+            match create_post(&name) {
+                Ok(_) => println!("Your new post \"{}\" was created!", &name),
+                Err(err) => eprintln!("{err}"),
+            };
         }
     }
 }
@@ -49,18 +53,32 @@ enum What {
 }
 
 fn create_post(name: &String) -> Result<(), Box<dyn std::error::Error>> {
-    // let filename = name.push_str(".md");
     let filename = format!("{}.md", name);
-    let mut path = env::current_exe().expect("Couldn't get current path.");
+    let mut path = env::current_dir()?;
+    // TODO: Check if we are inside a "site" first
+    // If not, we shouldn't be able to create a post!
+    let mut toml_path = path.clone();
+    toml_path.push("config.toml");
+    if toml_path.exists() {
+        println!("We can kinda think we are inside an actual site directory. Creating post...")
+    } else {
+        return Err(
+            "Not inside a site. Have you change directory to your site? Can't create post.".into(),
+        );
+    }
+
     println!("Trying to create post with name {}.md", name);
-    
-    // let path = std::format!("{}{}.md", path, filename);
+
     path.push("content");
     path.push("posts");
+    if !path.exists() {
+        fs::create_dir(&path)?;
+    }
     path.push(filename);
-    
-    // fs::File::create(path).expect("Could not create file.");
-    println!("At path: {:?}", path);
+
+    fs::File::create(&path).expect("Could not create file.");
+    println!("At path: {:?}", &path);
+    println!("File succesfully created!");
     Ok(())
 }
 
@@ -75,10 +93,11 @@ fn main() {
             if what == "site" {
                 // prompt for site
                 initial_prompt(&What::Site, &name);
+                // Todo hurr we haven't created a site yet
             } else if what == "post" {
                 // prompt for post
                 initial_prompt(&What::Post, &name);
-                let _ = create_post(&name);
+                // let _ = create_post(&name);
             }
         }
     };
