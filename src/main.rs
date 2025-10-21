@@ -44,9 +44,9 @@ fn initial_prompt(what: &What, name: &String) {
             };
         }
         What::Post => {
-            match create_post(&name) {
+            match create_content(&name) {
                 Ok(_) => println!("Your new post \"{}\" was created!", &name),
-                Err(err) => eprintln!("{err}"),
+                Err(err) => eprintln!("Could not create content: {err}"),
             };
         }
     }
@@ -78,31 +78,50 @@ fn create_site(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn create_post(name: &String) -> Result<(), Box<dyn std::error::Error>> {
-    let filename = format!("{}.md", name);
+fn check_valid_archetype(name: &String) -> bool {
+    if name.ends_with(".md") {
+        return true;
+    }
+    false
+}
+
+fn create_content(name: &String) -> Result<(), Box<dyn std::error::Error>> {
+    if !check_valid_archetype(&name) {
+        return Err("Error: Failed to resolve \"{name}\" to an archetype template".into());
+    }
+
     let mut path = env::current_dir()?;
+
+    // Check if we're in an actual site directry
     let mut toml_path = path.clone();
     toml_path.push("config.toml");
-
     if toml_path.exists() {
         println!("We can kinda think we are inside an actual site directory. Creating post...")
     } else {
         return Err(
-            "Not inside a site. Have you change directory to your site? Can't create post.".into(),
+            "Not inside a site. Have you changed directory to your site? Can't create content.".into(),
         );
     }
 
-    println!("Trying to create post with name {}.md", name);
-
     path.push("content");
-    path.push("posts");
-    if !path.exists() {
-        fs::create_dir(&path)?;
-    }
-    path.push(filename);
 
-    fs::File::create(&path).expect("Could not create file.");
-    println!("At path: {:?}", &path);
+    // Check if directory (or content type) was provided and act accordingly
+    if name.contains("/") {
+        if let Some((content_dir, post_name)) = name.rsplit_once("/") {
+            path.push(content_dir);
+            if !path.exists() {
+                fs::create_dir(&path)?;
+            }
+            path.push(post_name);
+        }
+    } else {
+        if !path.exists() {
+            fs::create_dir(&path)?;
+        }
+        path.push(name);
+    }
+
+    fs::File::create(&path)?;
     println!("File succesfully created!");
     Ok(())
 }
@@ -122,7 +141,7 @@ fn main() {
             } else if what == "post" {
                 // prompt for post
                 initial_prompt(&What::Post, &name);
-                // let _ = create_post(&name);
+                // let _ = create_content(&name);
             }
         }
     };
