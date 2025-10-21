@@ -55,10 +55,9 @@ enum What {
 fn create_post(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     let filename = format!("{}.md", name);
     let mut path = env::current_dir()?;
-    // TODO: Check if we are inside a "site" first
-    // If not, we shouldn't be able to create a post!
     let mut toml_path = path.clone();
     toml_path.push("config.toml");
+
     if toml_path.exists() {
         println!("We can kinda think we are inside an actual site directory. Creating post...")
     } else {
