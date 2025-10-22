@@ -1,61 +1,45 @@
-use std::{env, fs};
+use std::{env, fs, process};
 
 use clap::{Parser, Subcommand};
 
-#[derive(Parser)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// Command
-    #[command(subcommand)]
-    cmd: Commands,
-}
+// fn initial_prompt(what: &What, name: &String) {
+//     match what {
+//         What::Site => {
+//             match create_site(&name) {
+//                 Ok(_) => {
+//                     println!(
+//                         // Fix to display the actual path, not cwd
+//                         "Congratulations! Your new site \"{}\", was created!",
+//                         name
+//                     );
 
-#[derive(Subcommand, Debug, Clone)]
-enum Commands {
-    New {
-        what_to_create: String,
-        name: String,
-    },
-}
+//                     println!("\nJust a few more steps...\n");
 
-fn initial_prompt(what: &What, name: &String) {
-    match what {
-        What::Site => {
-            match create_site(&name) {
-                Ok(_) => {
-                    println!(
-                        // Fix to display the actual path, not cwd
-                        "Congratulations! Your new site \"{}\", was created!",
-                        name
-                    );
+//                     // Placeholder still
+//                     println!("1. Change the current directory to {}", "directory.");
+//                     println!(
+//                         "2. Create new content with the command \"rusite new content <SECTIONNAME>/<FILENAME>.<FORMAT>\"."
+//                     );
+//                     println!(
+//                         "3. Start the embedded web server with the command \"rusite server --buildDrafts\"."
+//                     );
+//                 }
+//                 Err(err) => eprintln!("{err}"),
+//             };
+//         }
+//         What::Post => {
+//             match create_content(&name) {
+//                 Ok(_) => println!("Your new post \"{}\" was created!", &name),
+//                 Err(err) => eprintln!("Could not create content: {err}"),
+//             };
+//         }
+//     }
+// }
 
-                    println!("\nJust a few more steps...\n");
-
-                    // Placeholder still
-                    println!("1. Change the current directory to {}", "directory.");
-                    println!(
-                        "2. Create new content with the command \"rusite new content <SECTIONNAME>/<FILENAME>.<FORMAT>\"."
-                    );
-                    println!(
-                        "3. Start the embedded web server with the command \"rusite server --buildDrafts\"."
-                    );
-                }
-                Err(err) => eprintln!("{err}"),
-            };
-        }
-        What::Post => {
-            match create_content(&name) {
-                Ok(_) => println!("Your new post \"{}\" was created!", &name),
-                Err(err) => eprintln!("Could not create content: {err}"),
-            };
-        }
-    }
-}
-
-enum What {
-    Site,
-    Post,
-}
+// enum What {
+//     Site,
+//     Post,
+// }
 
 fn create_site(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     let mut path = env::current_dir()?;
@@ -126,23 +110,49 @@ fn create_content(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Command
+    #[command(subcommand)]
+    cmd: Commands,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum Commands {
+    New {
+        #[command(subcommand)]
+        target: NewTarget,
+    },
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum NewTarget {
+    Site {name: String},
+    Content {name: String},
+}
+
+
 fn main() {
     let args = Args::parse();
 
+    if let Err(err) = run(args) {
+        eprintln!("Application error: {}", err);
+        process::exit(1);
+    }
+
+}
+
+fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
+
     match args.cmd {
-        Commands::New {
-            what_to_create: what,
-            name,
-        } => {
-            if what == "site" {
-                // prompt for site
-                initial_prompt(&What::Site, &name);
-                // Todo hurr we haven't created a site yet
-            } else if what == "post" {
-                // prompt for post
-                initial_prompt(&What::Post, &name);
-                // let _ = create_content(&name);
+        Commands::New { target } => {
+            match target {
+                NewTarget::Site { name } => create_site(&name)?,
+                NewTarget::Content { name } => create_content(&name)?,
             }
         }
     };
+
+    Ok(())
 }
