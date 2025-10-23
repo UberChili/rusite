@@ -2,44 +2,17 @@ use std::{env, fs, process};
 
 use clap::{Parser, Subcommand};
 
-// fn initial_prompt(what: &What, name: &String) {
-//     match what {
-//         What::Site => {
-//             match create_site(&name) {
-//                 Ok(_) => {
-//                     println!(
-//                         // Fix to display the actual path, not cwd
-//                         "Congratulations! Your new site \"{}\", was created!",
-//                         name
-//                     );
-
-//                     println!("\nJust a few more steps...\n");
-
-//                     // Placeholder still
-//                     println!("1. Change the current directory to {}", "directory.");
-//                     println!(
-//                         "2. Create new content with the command \"rusite new content <SECTIONNAME>/<FILENAME>.<FORMAT>\"."
-//                     );
-//                     println!(
-//                         "3. Start the embedded web server with the command \"rusite server --buildDrafts\"."
-//                     );
-//                 }
-//                 Err(err) => eprintln!("{err}"),
-//             };
-//         }
-//         What::Post => {
-//             match create_content(&name) {
-//                 Ok(_) => println!("Your new post \"{}\" was created!", &name),
-//                 Err(err) => eprintln!("Could not create content: {err}"),
-//             };
-//         }
-//     }
-// }
-
-// enum What {
-//     Site,
-//     Post,
-// }
+fn new_site_msg(name: &String) {
+    println!("Congratulations! Your new site \"{}\", was created!", &name);
+    println!("\nJust a few more steps... \n");
+    println!("1. Change the current directory to {}/", &name);
+    println!(
+        "2. Create new content with the command \"rusite new content <SECTIONNAME>/<FILENAME>.<FORMAT>\"."
+    );
+    println!(
+        "3. Start the embedded web server with the command \"rusite server --buildDrafts\"."
+    );
+}
 
 fn create_site(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     let mut path = env::current_dir()?;
@@ -59,6 +32,7 @@ fn create_site(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir("data")?;
     fs::File::create("config.toml")?;
 
+    new_site_msg(&name);
     Ok(())
 }
 
@@ -106,7 +80,8 @@ fn create_content(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     }
 
     fs::File::create(&path)?;
-    println!("File succesfully created!");
+    println!("Your new content \"{}\" was created!", &name);
+
     Ok(())
 }
 
