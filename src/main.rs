@@ -2,7 +2,7 @@ use std::{env, fs, process};
 
 use clap::{Parser, Subcommand};
 
-fn new_site_msg(name: &String) {
+fn new_site_msg(name: &str) {
     println!("Congratulations! Your new site \"{}\", was created!", &name);
     println!("\nJust a few more steps... \n");
     println!("1. Change the current directory to {}/", &name);
@@ -14,7 +14,7 @@ fn new_site_msg(name: &String) {
     );
 }
 
-fn create_site(name: &String) -> Result<(), Box<dyn std::error::Error>> {
+fn create_site(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut path = env::current_dir()?;
     path.push(&name);
     if path.exists() {
@@ -36,14 +36,11 @@ fn create_site(name: &String) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn check_valid_archetype(name: &String) -> bool {
-    if name.ends_with(".md") {
-        return true;
-    }
-    false
+fn check_valid_archetype(name: &str) -> bool {
+    name.ends_with(".md")
 }
 
-fn create_content(name: &String) -> Result<(), Box<dyn std::error::Error>> {
+fn create_content(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     if !check_valid_archetype(&name) {
         return Err("Error: Failed to resolve \"{name}\" to an archetype template".into());
     }
