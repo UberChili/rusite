@@ -12,14 +12,20 @@ pub enum Target {
     Post,
 }
 
-pub fn frontmatter(target: Target, path: &PathBuf, name: &str) -> Result<(), Box<dyn Error>> {
+pub fn frontmatter(
+    file: &fs::File,
+    target: Target,
+    path: &PathBuf,
+    name: &str,
+) -> Result<(), Box<dyn Error>> {
     match target {
         Target::Post => {
-            let title: String = format!("title: {}", &name);
-            let file = fs::File::create(&path)?;
+            let title = path.file_stem().and_then(|s| s.to_str()).unwrap_or(name);
+            let title_line: String = format!("title: {}\n", &title);
             let mut buf_writer = BufWriter::new(file);
             buf_writer.write_all("---\n".as_bytes())?;
-            buf_writer.write_all(title.as_bytes())?;
+            buf_writer.write_all(title_line.as_bytes())?;
+            buf_writer.write_all("draft: true\n".as_bytes())?;
             buf_writer.write_all("---\n".as_bytes())?;
         }
     };
@@ -64,8 +70,8 @@ pub fn create_content(name: &str) -> Result<(), Box<dyn std::error::Error>> {
         path.push(name);
     }
 
-    fs::File::create(&path)?;
-    frontmatter(Target::Post, &path, &name)?;
+    let file = fs::File::create(&path)?;
+    frontmatter(&file, Target::Post, &path, &name)?;
     println!("Your new content \"{}\" was created!", &name);
 
     Ok(())
