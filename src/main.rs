@@ -2,43 +2,8 @@ use std::{env, fs, process};
 
 use clap::{Parser, Subcommand};
 
-fn new_site_msg(name: &str) {
-    println!("Congratulations! Your new site \"{}\", was created!", &name);
-    println!("\nJust a few more steps... \n");
-    println!("1. Change the current directory to {}/", &name);
-    println!(
-        "2. Create new content with the command \"rusite new content <SECTIONNAME>/<FILENAME>.<FORMAT>\"."
-    );
-    println!(
-        "3. Start the embedded web server with the command \"rusite server --buildDrafts\"."
-    );
-}
-
-fn create_site(name: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut path = env::current_dir()?;
-    path.push(&name);
-    if path.exists() {
-        let err = format!("Site {} already exists!", &name);
-        return Err(err.into());
-    }
-    fs::create_dir_all(&path)?;
-    env::set_current_dir(&path)?;
-    fs::create_dir("content")?;
-    fs::create_dir("static")?;
-    fs::create_dir("layouts")?;
-    fs::create_dir("themes")?;
-    fs::create_dir("archetypes")?;
-    fs::create_dir("assets")?;
-    fs::create_dir("data")?;
-    fs::File::create("config.toml")?;
-
-    new_site_msg(&name);
-    Ok(())
-}
-
-fn check_valid_archetype(name: &str) -> bool {
-    name.ends_with(".md")
-}
+use rusite::create_site;
+use rusite::check_valid_archetype;
 
 fn create_content(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     if !check_valid_archetype(&name) {
@@ -116,7 +81,6 @@ fn main() {
 }
 
 fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
-
     match args.cmd {
         Commands::New { target } => {
             match target {
