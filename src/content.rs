@@ -1,3 +1,5 @@
+use chrono::DateTime;
+
 use crate::check_valid_archetype;
 use std::{
     env,
@@ -12,6 +14,32 @@ pub enum Target {
     Post,
 }
 
+#[derive(Debug)]
+pub struct FrontMatterInfo<TimeZone: chrono::TimeZone> {
+    title: String,
+    draft: bool,
+    date: DateTime<TimeZone>,
+}
+
+impl<TimeZone: chrono::TimeZone> FrontMatterInfo<TimeZone> {
+    pub fn new(name: &str, date: &DateTime<TimeZone>) -> FrontMatterInfo<TimeZone> {
+        FrontMatterInfo {
+            title: name.to_string(),
+            draft: true,
+            date: date.clone(),
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        format!(
+            "---\ntitle: {}\ndate: {}\ndraft: {}\n---\n",
+            self.title,
+            self.date.to_rfc3339(),
+            self.draft,
+        )
+    }
+}
+
 pub fn frontmatter(
     file: &fs::File,
     target: Target,
@@ -20,13 +48,11 @@ pub fn frontmatter(
 ) -> Result<(), Box<dyn Error>> {
     match target {
         Target::Post => {
+            let date = chrono::Local::now();
             let title = path.file_stem().and_then(|s| s.to_str()).unwrap_or(name);
-            let title_line: String = format!("title: {}\n", &title);
+            let ftmatter = FrontMatterInfo::new(&title, &date);
             let mut buf_writer = BufWriter::new(file);
-            buf_writer.write_all("---\n".as_bytes())?;
-            buf_writer.write_all(title_line.as_bytes())?;
-            buf_writer.write_all("draft: true\n".as_bytes())?;
-            buf_writer.write_all("---\n".as_bytes())?;
+            buf_writer.write_all(ftmatter.to_string().as_bytes())?;
         }
     };
 
@@ -35,7 +61,11 @@ pub fn frontmatter(
 
 pub fn create_content(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     if !check_valid_archetype(&name) {
-        return Err("Error: Failed to resolve \"{name}\" to an archetype template".into());
+        let err = format!(
+            "Error: Failed to resolte \"{}\" to an archetype template",
+            &name
+        );
+        return Err(err.into());
     }
 
     let mut path = env::current_dir()?;
