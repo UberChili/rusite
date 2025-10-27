@@ -21,6 +21,13 @@ impl Config {
             title: String::from("My New Rusite Site"),
         }
     }
+
+    pub fn write_initial_toml(&self, file: &fs::File) -> Result<(), Box<dyn std::error::Error>> {
+        let mut buf_writer = BufWriter::new(file);
+        buf_writer.write_all(self.to_string().as_bytes())?;
+
+        Ok(())
+    }
 }
 
 impl Display for Config {
@@ -50,22 +57,23 @@ pub fn create_site(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir("archetypes")?;
     fs::create_dir("assets")?;
     fs::create_dir("data")?;
-    let config_toml = fs::File::create("config.toml")?;
+    let config_file = fs::File::create("config.toml")?;
 
     // Write minimum elements of new toml
-    write_initial_toml(&config_toml)?;
+    let config = Config::new();
+    config.write_initial_toml(&config_file)?;
 
     new_site_msg(&name);
     Ok(())
 }
 
 // Writes initial basic information needed for config.toml
-fn write_initial_toml(file: &fs::File) -> Result<(), Box<dyn std::error::Error>> {
-    let mut buf_writer = BufWriter::new(file);
-    buf_writer.write_all(Config::new().to_string().as_bytes())?;
+// fn write_initial_toml(file: &fs::File) -> Result<(), Box<dyn std::error::Error>> {
+//     let mut buf_writer = BufWriter::new(file);
+//     buf_writer.write_all(Config::new().to_string().as_bytes())?;
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 fn new_site_msg(name: &str) {
     println!("Congratulations! Your new site \"{}\", was created!", &name);
