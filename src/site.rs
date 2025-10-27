@@ -1,4 +1,37 @@
-use std::{env, fs};
+use std::{
+    env,
+    fmt::Display,
+    fs,
+    io::{BufWriter, Write},
+};
+
+// Holds the configuration of the site that will also be used in config.toml
+pub struct Config {
+    base_url: String,
+    language_code: String,
+    title: String,
+}
+
+impl Config {
+    // Creates new configuration with default info
+    pub fn new() -> Config {
+        Config {
+            base_url: String::from("https://example.org/"),
+            language_code: String::from("en-us"),
+            title: String::from("My New Rusite Site"),
+        }
+    }
+}
+
+impl Display for Config {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "baseURL = \'{}\'\nlanguageCode = \'{}\'\ntitle = \'{}\'\n",
+            self.base_url, self.language_code, self.title
+        )
+    }
+}
 
 // Creates a new site
 pub fn create_site(name: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -17,9 +50,20 @@ pub fn create_site(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir("archetypes")?;
     fs::create_dir("assets")?;
     fs::create_dir("data")?;
-    fs::File::create("config.toml")?;
+    let config_toml = fs::File::create("config.toml")?;
+
+    // Write minimum elements of new toml
+    write_initial_toml(&config_toml)?;
 
     new_site_msg(&name);
+    Ok(())
+}
+
+// Writes initial basic information needed for config.toml
+fn write_initial_toml(file: &fs::File) -> Result<(), Box<dyn std::error::Error>> {
+    let mut buf_writer = BufWriter::new(file);
+    buf_writer.write_all(Config::new().to_string().as_bytes())?;
+
     Ok(())
 }
 
@@ -30,7 +74,5 @@ fn new_site_msg(name: &str) {
     println!(
         "2. Create new content with the command \"rusite new content <SECTIONNAME>/<FILENAME>.<FORMAT>\"."
     );
-    println!(
-        "3. Start the embedded web server with the command \"rusite server --buildDrafts\"."
-    );
+    println!("3. Start the embedded web server with the command \"rusite server --buildDrafts\".");
 }
