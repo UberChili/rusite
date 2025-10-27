@@ -2,7 +2,7 @@ use std::process;
 
 use clap::{Parser, Subcommand};
 
-use rusite::{content, site};
+use rusite::{content, server, site};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -18,6 +18,7 @@ enum Commands {
         #[command(subcommand)]
         target: NewTarget,
     },
+    Server,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -41,6 +42,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             NewTarget::Site { name } => site::create_site(&name)?,
             NewTarget::Content { name } => content::create_content(&name)?,
         },
+        Commands::Server => server::server()?,
     };
 
     Ok(())
