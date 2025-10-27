@@ -67,14 +67,6 @@ pub fn create_site(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// Writes initial basic information needed for config.toml
-// fn write_initial_toml(file: &fs::File) -> Result<(), Box<dyn std::error::Error>> {
-//     let mut buf_writer = BufWriter::new(file);
-//     buf_writer.write_all(Config::new().to_string().as_bytes())?;
-
-//     Ok(())
-// }
-
 fn new_site_msg(name: &str) {
     println!("Congratulations! Your new site \"{}\", was created!", &name);
     println!("\nJust a few more steps... \n");

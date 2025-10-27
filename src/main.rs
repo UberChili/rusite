@@ -2,7 +2,7 @@ use std::process;
 
 use clap::{Parser, Subcommand};
 
-use rusite::{site, content};
+use rusite::{content, site};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -22,10 +22,9 @@ enum Commands {
 
 #[derive(Subcommand, Debug, Clone)]
 enum NewTarget {
-    Site {name: String},
-    Content {name: String},
+    Site { name: String },
+    Content { name: String },
 }
-
 
 fn main() {
     let args = Args::parse();
@@ -34,17 +33,14 @@ fn main() {
         eprintln!("Application error: {}", err);
         process::exit(1);
     }
-
 }
 
 fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     match args.cmd {
-        Commands::New { target } => {
-            match target {
-                NewTarget::Site { name } => site::create_site(&name)?,
-                NewTarget::Content { name } => content::create_content(&name)?,
-            }
-        }
+        Commands::New { target } => match target {
+            NewTarget::Site { name } => site::create_site(&name)?,
+            NewTarget::Content { name } => content::create_content(&name)?,
+        },
     };
 
     Ok(())
