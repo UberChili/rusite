@@ -1,9 +1,10 @@
-use chrono::DateTime;
+use chrono::{DateTime, Local};
 
 use crate::check_valid_archetype;
 use std::{
     env,
     error::Error,
+    fmt::Display,
     fs,
     io::{BufWriter, Write},
     path::PathBuf,
@@ -15,23 +16,35 @@ pub enum Target {
 }
 
 #[derive(Debug)]
-pub struct FrontMatterInfo<TimeZone: chrono::TimeZone> {
+pub struct FrontMatterInfo {
     title: String,
     draft: bool,
-    date: DateTime<TimeZone>,
+    date: DateTime<Local>,
 }
 
-impl<TimeZone: chrono::TimeZone> FrontMatterInfo<TimeZone> {
-    pub fn new(name: &str, date: &DateTime<TimeZone>) -> FrontMatterInfo<TimeZone> {
+impl FrontMatterInfo {
+    pub fn new(name: &str, date: &DateTime<Local>) -> FrontMatterInfo {
         FrontMatterInfo {
             title: name.to_string(),
             draft: true,
-            date: date.clone(),
+            date: *date,
         }
     }
 
     pub fn to_string(&self) -> String {
         format!(
+            "---\ntitle: {}\ndate: {}\ndraft: {}\n---\n",
+            self.title,
+            self.date.to_rfc3339(),
+            self.draft,
+        )
+    }
+}
+
+impl Display for FrontMatterInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "---\ntitle: {}\ndate: {}\ndraft: {}\n---\n",
             self.title,
             self.date.to_rfc3339(),
