@@ -30,15 +30,6 @@ impl FrontMatterInfo {
             date: *date,
         }
     }
-
-    pub fn to_string(&self) -> String {
-        format!(
-            "---\ntitle: {}\ndate: {}\ndraft: {}\n---\n",
-            self.title,
-            self.date.to_rfc3339(),
-            self.draft,
-        )
-    }
 }
 
 impl Display for FrontMatterInfo {
@@ -65,6 +56,7 @@ pub fn frontmatter(
             let title = path.file_stem().and_then(|s| s.to_str()).unwrap_or(name);
             let ftmatter = FrontMatterInfo::new(&title, &date);
             let mut buf_writer = BufWriter::new(file);
+            // buf_writer.write_all(ftmatter.to_string().as_bytes())?;
             buf_writer.write_all(ftmatter.to_string().as_bytes())?;
         }
     };
