@@ -58,7 +58,13 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 pub fn walk_dir(directory: &PathBuf) {
     if let Ok(entries) = fs::read_dir(&directory) {
         for entry in entries {
-            println!("{:?}", entry.unwrap());
+            if let Ok(direntry) = entry {
+                if let Ok(metadata) = direntry.metadata() {
+                    if metadata.is_file() {
+                        println!("{:?} is a file", direntry.file_name());
+                    }
+                }
+            }
         }
     }
 }
