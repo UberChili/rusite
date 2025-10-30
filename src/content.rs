@@ -83,7 +83,7 @@ pub fn create_content(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     } else {
         return Err(
             "Not inside a site. Have you changed directory to your site? Can't create content."
-                .into(),
+            .into(),
         );
     }
 
