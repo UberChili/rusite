@@ -1,9 +1,6 @@
+use std::env;
 use std::fs::{self, DirEntry, Metadata};
 use std::path::PathBuf;
-use std::{
-    env,
-    // fs::{self, DirEntry}, path::PathBuf,
-};
 
 pub fn server() -> Result<(), Box<dyn std::error::Error>> {
     build()?;
@@ -28,27 +25,6 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    // Check all files to read
-    // currently we should just focus on the immediate contents of content/
-    // let mut entries: Vec<DirEntry> = Vec::new();
-
-    // for entry in fs::read_dir(&path)? {
-    //     entries.push(entry?);
-    // }
-
-    // for entry in entries {
-    //     println!("{:?}", entry);
-    //     println!("{:?}", entry.path());
-    // }
-
-    // if let Ok(entries) = fs::read_dir(&path) {
-    //     // for entry in entries {
-    //     //     if let Ok(entry) = entry {
-    //     //         println!("{:?} type is: {:?}", &entry.file_name(), &entry.file_type());
-    //     //     }
-    //     // }
-    // }
-
     walk_dir(&path);
 
     Ok(())
@@ -56,22 +32,6 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 
 #[allow(unused_variables)]
 pub fn walk_dir(directory: &PathBuf) -> Vec<DirEntry> {
-    // TODO fix this or convert to idiomatic Rust
-
-    // let mut entries_v: Vec<DirEntry> = Vec::new();
-
-    // if let Ok(entries) = fs::read_dir(&directory) {
-    //     for entry in entries {
-    //         if let Ok(direntry) = entry {
-    //             if let Ok(metadata) = direntry.metadata() {
-    //                 if metadata.is_file() {
-    //                     println!("{:?} is a file", direntry.file_name());
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
     let mut files = Vec::new();
 
     // fs::read_dir(&directory)
@@ -91,7 +51,8 @@ pub fn walk_dir(directory: &PathBuf) -> Vec<DirEntry> {
                 files.push(entry);
             } else if entry.metadata().as_ref().is_ok_and(Metadata::is_dir) {
                 println!("Directory: {:?}", &entry);
-                walk_dir(&entry.path());
+                let subdirectory_files = walk_dir(&entry.path());
+                files.extend(subdirectory_files);
             }
         });
 
