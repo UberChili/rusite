@@ -1,4 +1,4 @@
-use std::fs::{self, DirEntry};
+use std::fs::{self, DirEntry, Metadata};
 use std::path::PathBuf;
 use std::{
     env,
@@ -55,16 +55,45 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[allow(unused_variables)]
-pub fn walk_dir(directory: &PathBuf) {
-    if let Ok(entries) = fs::read_dir(&directory) {
-        for entry in entries {
-            if let Ok(direntry) = entry {
-                if let Ok(metadata) = direntry.metadata() {
-                    if metadata.is_file() {
-                        println!("{:?} is a file", direntry.file_name());
-                    }
-                }
+pub fn walk_dir(directory: &PathBuf) -> Vec<DirEntry> {
+    // TODO fix this or convert to idiomatic Rust
+
+    // let mut entries_v: Vec<DirEntry> = Vec::new();
+
+    // if let Ok(entries) = fs::read_dir(&directory) {
+    //     for entry in entries {
+    //         if let Ok(direntry) = entry {
+    //             if let Ok(metadata) = direntry.metadata() {
+    //                 if metadata.is_file() {
+    //                     println!("{:?} is a file", direntry.file_name());
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    let mut files = Vec::new();
+
+    // fs::read_dir(&directory)
+    //     .into_iter()
+    //     .flatten()
+    //     .flatten()
+    //     .filter(|entry| entry.metadata().as_ref().is_ok_and(Metadata::is_file))
+    //     .for_each(|entry| files.push(entry));
+
+    fs::read_dir(&directory)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .for_each(|entry| {
+            if entry.metadata().as_ref().is_ok_and(Metadata::is_file) {
+                println!("File: {:?}", &entry);
+                files.push(entry);
+            } else if entry.metadata().as_ref().is_ok_and(Metadata::is_dir) {
+                println!("Directory: {:?}", &entry);
+                walk_dir(&entry.path());
             }
-        }
-    }
+        });
+
+    files
 }
