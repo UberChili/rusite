@@ -2,6 +2,22 @@ use std::env;
 use std::fs::{self, DirEntry, Metadata};
 use std::path::PathBuf;
 
+use serde::Deserialize;
+
+#[derive(Debug)]
+pub struct FileContent {
+    pub path: PathBuf,
+    pub frontmatter: Frontmatter,
+    pub contents: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Frontmatter {
+    title: String,
+    date: String,
+    draft: bool,
+}
+
 pub fn server() -> Result<(), Box<dyn std::error::Error>> {
     build()?;
 
@@ -17,7 +33,6 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 
     toml_path.push("config.toml");
     if toml_path.exists() {
-        println!("We are in a site directory, I think.");
         path.push("content");
     } else {
         return Err(
@@ -25,32 +40,60 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    walk_dir(&path);
+    // Walk directory and subdirectories and get the files we need to parse to build the site
+    let entries = walk_dir(&path);
+
+    // Loop through files and do the parsing
+    // TODO
+    for entry in entries {
+        let file_content = parse_file(&entry)?;
+        println!("{:?}", file_content.path);
+        println!(
+            "Frontmatter: {}, {}, {}",
+            file_content.frontmatter.title,
+            file_content.frontmatter.date,
+            file_content.frontmatter.draft
+        );
+    }
 
     Ok(())
 }
 
-#[allow(unused_variables)]
+pub fn parse_file(file: &DirEntry) -> Result<FileContent, Box<dyn std::error::Error>> {
+    println!("Parsing {:?}", &file.file_name());
+    let contents = fs::read_to_string(&file.path())?;
+    Ok(FileContent {
+        path: file.path(),
+        frontmatter: parse_frontmatter(&contents)?,
+        contents: contents,
+    })
+}
+
+pub fn parse_frontmatter(file: &str) -> Result<Frontmatter, Box<dyn std::error::Error>> {
+    // let content = file.lines().filter(|line| !line.contains("---"));
+    let fmttext: String = file
+        .lines()
+        .skip_while(|line| line.trim() != "---")
+        .skip(1)
+        .take_while(|line| line.trim() != "---")
+        .collect::<Vec<_>>()
+        .join("\n");
+    let frontmatter: Frontmatter = serde_yaml::from_str(&fmttext)?;
+    Ok(frontmatter)
+}
+
+// Main recutrsive function that goes through the "parent" content directory
+// and all subdirectories.
 pub fn walk_dir(directory: &PathBuf) -> Vec<DirEntry> {
     let mut files = Vec::new();
-
-    // fs::read_dir(&directory)
-    //     .into_iter()
-    //     .flatten()
-    //     .flatten()
-    //     .filter(|entry| entry.metadata().as_ref().is_ok_and(Metadata::is_file))
-    //     .for_each(|entry| files.push(entry));
-
     fs::read_dir(&directory)
         .into_iter()
         .flatten()
         .flatten()
         .for_each(|entry| {
             if entry.metadata().as_ref().is_ok_and(Metadata::is_file) {
-                println!("File: {:?}", &entry);
                 files.push(entry);
             } else if entry.metadata().as_ref().is_ok_and(Metadata::is_dir) {
-                println!("Directory: {:?}", &entry);
                 let subdirectory_files = walk_dir(&entry.path());
                 files.extend(subdirectory_files);
             }
