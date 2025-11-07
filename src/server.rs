@@ -43,17 +43,16 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     // Walk directory and subdirectories and get the files we need to parse to build the site
     let entries = walk_dir(&path);
 
-    // Loop through files and do the parsing
-    // TODO
     for entry in entries {
-        let file_content = parse_file(&entry)?;
-        println!("{:?}", file_content.path);
-        println!(
-            "Frontmatter: {}, {}, {}",
-            file_content.frontmatter.title,
-            file_content.frontmatter.date,
-            file_content.frontmatter.draft
-        );
+        if let Ok(file_content) = parse_file(&entry) {
+            println!("{:?}", file_content.path);
+            println!(
+                "Frontmatter: {}, {}, {}",
+                file_content.frontmatter.title,
+                file_content.frontmatter.date,
+                file_content.frontmatter.draft
+            );
+        }
     }
 
     Ok(())
@@ -62,15 +61,24 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 pub fn parse_file(file: &DirEntry) -> Result<FileContent, Box<dyn std::error::Error>> {
     println!("Parsing {:?}", &file.file_name());
     let contents = fs::read_to_string(&file.path())?;
+    let frontmatter = match parse_frontmatter(&contents) {
+        Ok(cont) => cont,
+        Err(err) => {
+            eprintln!(
+                "Error when parsing frontmatter: {}. File has no frontmatter?",
+                err
+            );
+            return Err(err);
+        }
+    };
     Ok(FileContent {
         path: file.path(),
-        frontmatter: parse_frontmatter(&contents)?,
-        contents: contents,
+        frontmatter,
+        contents,
     })
 }
 
 pub fn parse_frontmatter(file: &str) -> Result<Frontmatter, Box<dyn std::error::Error>> {
-    // let content = file.lines().filter(|line| !line.contains("---"));
     let fmttext: String = file
         .lines()
         .skip_while(|line| line.trim() != "---")
@@ -79,6 +87,7 @@ pub fn parse_frontmatter(file: &str) -> Result<Frontmatter, Box<dyn std::error::
         .collect::<Vec<_>>()
         .join("\n");
     let frontmatter: Frontmatter = serde_yaml::from_str(&fmttext)?;
+
     Ok(frontmatter)
 }
 
