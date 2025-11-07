@@ -8,7 +8,7 @@ use serde::Deserialize;
 pub struct FileContent {
     pub path: PathBuf,
     pub frontmatter: Frontmatter,
-    pub contents: String,
+    pub body: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,6 +52,7 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
                 file_content.frontmatter.date,
                 file_content.frontmatter.draft
             );
+            println!("Body: {}", file_content.body);
         } else {
             eprintln!("Warning: skipping {:?} - Parsing failed.", entry.path());
         }
@@ -73,11 +74,30 @@ pub fn parse_file(file: &DirEntry) -> Result<FileContent, Box<dyn std::error::Er
             return Err(err);
         }
     };
+    let body = match parse_body(&contents) {
+        Ok(body) => body,
+        Err(err) => {
+            eprintln!("Error when parsing file body: {}. File is empty?", err);
+            return Err(err);
+        }
+    };
     Ok(FileContent {
         path: file.path(),
         frontmatter,
-        contents,
+        body,
     })
+}
+
+pub fn parse_body(file: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let body: String = file
+        .lines()
+        .skip_while(|line| line.trim() != "---")
+        .skip(1)
+        .skip_while(|line| !line.trim().contains("---"))
+        .skip(1)
+        .collect::<Vec<_>>()
+        .join("\n");
+    Ok(body)
 }
 
 pub fn parse_frontmatter(file: &str) -> Result<Frontmatter, Box<dyn std::error::Error>> {
