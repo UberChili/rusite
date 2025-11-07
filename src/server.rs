@@ -27,7 +27,7 @@ pub fn server() -> Result<(), Box<dyn std::error::Error>> {
 pub fn build() -> Result<(), Box<dyn std::error::Error>> {
     println!("Building site...");
 
-    // Check if we're in an actual site directory
+    // Check if we're in an actual site directory, else panic
     let mut path = env::current_dir()?;
     let mut toml_path = path.clone();
 
@@ -52,6 +52,8 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
                 file_content.frontmatter.date,
                 file_content.frontmatter.draft
             );
+        } else {
+            eprintln!("Warning: skipping {:?} - Parsing failed.", entry.path());
         }
     }
 
