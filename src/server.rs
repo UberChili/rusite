@@ -1,5 +1,4 @@
-use crate::parser::parse_file;
-use crate::parser::walk_dir;
+use crate::parser::{markdown_to_html, parse_file, walk_dir};
 use std::env;
 
 pub fn server() -> Result<(), Box<dyn std::error::Error>> {
@@ -29,14 +28,18 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
 
     for entry in entries {
         if let Ok(file_content) = parse_file(&entry) {
-            println!("{:?}", file_content.path);
-            println!(
-                "Frontmatter: {}, {}, {}",
-                file_content.frontmatter.title,
-                file_content.frontmatter.date,
-                file_content.frontmatter.draft
-            );
-            println!("Body: {}", file_content.body);
+            // println!("{:?}", file_content.path);
+            // println!(
+            //     "Frontmatter: {}, {}, {}",
+            //     file_content.frontmatter.title,
+            //     file_content.frontmatter.date,
+            //     file_content.frontmatter.draft
+            // );
+            // println!("Body: {}", file_content.body);
+
+            // Testing html output:
+            let html = markdown_to_html(&file_content);
+            println!("{}", &html);
         } else {
             eprintln!("Warning: skipping {:?} - Parsing failed.", entry.path());
         }

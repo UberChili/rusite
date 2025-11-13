@@ -1,4 +1,5 @@
 pub mod content;
+pub mod parser;
 pub mod server;
 pub mod site;
 

@@ -1,8 +1,7 @@
-use std::fs::{self, DirEntry, Metadata};
-
-use std::path::PathBuf;
-
+use pulldown_cmark::{html, Parser};
 use serde::Deserialize;
+use std::fs::{self, DirEntry, Metadata};
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct FileContent {
@@ -88,4 +87,12 @@ pub fn walk_dir(directory: &PathBuf) -> Vec<DirEntry> {
         });
 
     files
+}
+
+// Converts markdown contents of a file to html
+pub fn markdown_to_html(file: &FileContent) -> String {
+    let parser = Parser::new(&file.body);
+    let mut html_output = String::new();
+    html::push_html(&mut html_output, parser);
+    html_output
 }
