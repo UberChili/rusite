@@ -1,6 +1,9 @@
 use pulldown_cmark::{html, Parser};
 use serde::Deserialize;
+use std::env;
 use std::fs::{self, DirEntry, Metadata};
+use std::io::BufWriter;
+use std::io::Write;
 use std::path::PathBuf;
 
 #[derive(Debug)]
@@ -18,7 +21,6 @@ pub struct Frontmatter {
 }
 
 pub fn parse_file(file: &DirEntry) -> Result<FileContent, Box<dyn std::error::Error>> {
-    println!("Parsing {:?}", &file.file_name());
     let contents = fs::read_to_string(&file.path())?;
     let frontmatter = match parse_frontmatter(&contents) {
         Ok(cont) => cont,
@@ -95,4 +97,22 @@ pub fn markdown_to_html(file: &FileContent) -> String {
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
     html_output
+}
+
+pub fn write_to_html(file: &FileContent, body: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // check if public directory exists, if not, create it
+    let mut path = env::current_dir()?;
+    path.push("public/");
+    path.push("posts/");
+    path.push(&file.frontmatter.title);
+    fs::create_dir_all(&path)?;
+
+    path.push("index.html");
+
+    // Write to file
+    let html_file = fs::File::create(path)?;
+    let mut buf_writer = BufWriter::new(html_file);
+    buf_writer.write_all(body.as_bytes())?;
+
+    Ok(())
 }

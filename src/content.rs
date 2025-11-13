@@ -67,7 +67,7 @@ pub fn frontmatter(
 pub fn create_content(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     if !check_valid_archetype(&name) {
         let err = format!(
-            "Error: Failed to resolte \"{}\" to an archetype template",
+            "Error: Failed to resolve \"{}\" to an archetype template",
             &name
         );
         return Err(err.into());
@@ -79,11 +79,11 @@ pub fn create_content(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut toml_path = path.clone();
     toml_path.push("config.toml");
     if toml_path.exists() {
-        println!("We can kinda think we are inside an actual site directory. Creating post...")
+        println!("Creating post...")
     } else {
         return Err(
             "Not inside a site. Have you changed directory to your site? Can't create content."
-            .into(),
+                .into(),
         );
     }
 

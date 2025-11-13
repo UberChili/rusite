@@ -52,6 +52,7 @@ pub fn create_site(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     env::set_current_dir(&path)?;
     fs::create_dir("content")?;
     fs::create_dir("static")?;
+    fs::create_dir("public")?;
     fs::create_dir("layouts")?;
     fs::create_dir("themes")?;
     fs::create_dir("archetypes")?;

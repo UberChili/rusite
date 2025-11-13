@@ -1,4 +1,4 @@
-use crate::parser::{markdown_to_html, parse_file, walk_dir};
+use crate::parser::{markdown_to_html, parse_file, walk_dir, write_to_html};
 use std::env;
 
 pub fn server() -> Result<(), Box<dyn std::error::Error>> {
@@ -38,8 +38,13 @@ pub fn build() -> Result<(), Box<dyn std::error::Error>> {
             // println!("Body: {}", file_content.body);
 
             // Testing html output:
+            print!(
+                "Processing file \"{}.md\"...",
+                &file_content.frontmatter.title
+            );
             let html = markdown_to_html(&file_content);
-            println!("{}", &html);
+            write_to_html(&file_content, &html)?;
+            println!("done!");
         } else {
             eprintln!("Warning: skipping {:?} - Parsing failed.", entry.path());
         }
