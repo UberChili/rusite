@@ -1,0 +1,65 @@
+#+title: Rusite
+
+* Introduction
+A basic static site generator inspired by [[https://gohugo.io/][Hugo]].
+* Usage
+
+** Creating a New Site
+
+Initialize a new static site:
+
+#+begin_src shell
+rusite new site my-site
+cd my-site
+#+end_src
+
+This creates the following directory structure:
+
+#+begin_example
+my-site/
+├── config.toml      # Site configuration
+├── content/         # Markdown content files
+├── static/          # Static assets (images, CSS, etc.)
+├── public/          # Generated site output (created on build)
+├── layouts/         # HTML templates (not yet implemented)
+├── themes/          # Theme files (not yet implemented)
+├── archetypes/      # Content templates
+├── assets/          # Asset pipeline files
+└── data/            # Data files
+#+end_example
+
+** Creating Content
+
+Create a new content file with frontmatter:
+
+#+begin_src shell
+rusite new content posts/my-first-post.md
+#+end_src
+
+Content can be organized in sections (subdirectories):
+
+#+begin_src shell
+rusite new content blog/hello-world.md
+rusite new content docs/getting-started.md
+#+end_src
+
+Each file is created with default frontmatter:
+
+#+begin_example
+---
+title: my-first-post
+date: 2025-11-20T10:30:00-06:00
+draft: true
+---
+#+end_example
+
+** Building the Site
+
+Generate the static site:
+
+#+begin_src shell
+rusite server
+#+end_src
+
+This processes all markdown files in =content/= and outputs HTML to =public/=.
+#+end_example
