@@ -1,7 +1,7 @@
 use pulldown_cmark::{html, Parser};
 use serde::Deserialize;
 use std::env;
-use std::fs::{self, DirEntry, Metadata};
+use std::fs::{self, DirEntry};
 use std::io::BufWriter;
 use std::io::Write;
 use std::path::PathBuf;
@@ -80,11 +80,19 @@ pub fn walk_dir(directory: &PathBuf) -> Vec<DirEntry> {
         .flatten()
         .flatten()
         .for_each(|entry| {
-            if entry.metadata().as_ref().is_ok_and(Metadata::is_file) {
-                files.push(entry);
-            } else if entry.metadata().as_ref().is_ok_and(Metadata::is_dir) {
-                let subdirectory_files = walk_dir(&entry.path());
-                files.extend(subdirectory_files);
+            // if entry.metadata().as_ref().is_ok_and(Metadata::is_file) {
+            //     files.push(entry);
+            // } else if entry.metadata().as_ref().is_ok_and(Metadata::is_dir) {
+            //     let subdirectory_files = walk_dir(&entry.path());
+            //     files.extend(subdirectory_files);
+            // }
+            if let Ok(meta) = entry.metadata() {
+                if meta.is_file() {
+                    files.push(entry);
+                } else if meta.is_dir() {
+                    let subdirectory_files = walk_dir(&entry.path());
+                    files.extend(subdirectory_files);
+                }
             }
         });
 
